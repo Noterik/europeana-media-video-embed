@@ -1,6 +1,5 @@
 const path = require('path')
 var webpack = require('webpack')
-var MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 process.env.NODE_ENV = process.env.NODE_ENV || 'development'
 process.env.EMVE_PORT = process.env.EMVE_PORT || 9001
@@ -17,7 +16,7 @@ const config = function (mode) {
                   use: {
                       loader: 'babel-loader',
                       options: {
-                        presets: ['es2015']
+                        presets: ["babel-preset-es2015"].map(require.resolve)
                       },
                   }
               },
@@ -33,7 +32,6 @@ const config = function (mode) {
                 test: /\.[s]?css$/,
                 use: [
                   'style-loader',
-                  //MiniCssExtractPlugin.loader,
                   {
                     loader: 'css-loader',
                     options: {
@@ -47,14 +45,14 @@ const config = function (mode) {
           ]
         },
         output: {
-            path: path.resolve(__dirname, 'public/bundle/'),
+            path: path.resolve(__dirname, 'public/'),
             filename: 'bundle.js',
             publicPath: '/',
         },
         plugins: [
             new webpack.ProvidePlugin({
                 $: "jquery"
-            })
+            }),
         ],
         devServer: {
             watchOptions: {

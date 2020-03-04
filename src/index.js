@@ -1,15 +1,18 @@
-//import 'materialize-css/dist/css/materialize.min.css';
-//import 'materialize-css/dist/js/materialize.min.js';
 import './index.scss';
+
+let mediaMode = '';
 
 const embedHost = 'https://embd.eu/api/embed/';
 const EuropeanaMediaPlayer = require("europeanamediaplayer").default;
 
-//var options = {embedid: "6FFlHN"};
-//var options = {embedid: "WZpDVT"};
-//var options = {embedid: "qBUhte"};
-//var options = {embedid: "6BGMFG"};
-var options = {embedid: "Y1pbs4"};
+//var options = {embedid: "6FFlHN"}; mediaMode = 'video';
+//var options = {embedid: "WZpDVT"}; mediaMode = 'video';
+//var options = {embedid: "qBUhte"}; mediaMode = 'video';
+//var options = {embedid: "6BGMFG"}; mediaMode = 'video';
+const options = {embedid: "Y1pbs4"}; mediaMode = 'video';
+
+//const options = {embedid: "7FQEZr"}; mediaMode = 'image'
+
 var manifest;
 var manifests = [];
 var embedWidth;
@@ -29,6 +32,7 @@ var duration = -1;
 var playing = false;
 
 window.addEventListener('load', () => {
+
   if (window.location.pathname.length > 1) {
     options.embedid = window.location.pathname.substring(1);
   }
@@ -56,17 +60,23 @@ function getEmbedInfo() {
       })
   .then(res => res.json())
   .then(response => {
-      if (Array.isArray(response.videoid)) {
-        manifests = response.videoid;
-        manifest = manifests[0].vid;
-      } else {
-        manifest = response.videoid;
+
+      $('body').addClass(mediaMode);
+
+      if(mediaMode === 'image'){
+        console.log('TODO: handle images');
       }
-      embedWidth = response.width;
-      embedHeight = response.height;
-
-      loadVideo();
-
+      else if(mediaMode === 'video'){
+        if (Array.isArray(response.videoid)) {
+          manifests = response.videoid;
+          manifest = manifests[0].vid;
+        } else {
+          manifest = response.videoid;
+        }
+        embedWidth = response.width;
+        embedHeight = response.height;
+        loadVideo();
+      }
   })
   .catch(err => {
       console.error("Could not retrieve embed info");
@@ -96,6 +106,7 @@ function loadVideo() {
 
     player.avcomponent.on('mediaready', function() {
       initializeEmbed();
+      initializeAttribution();
     });
 
     player.avcomponent.on('play', function() {
@@ -111,9 +122,80 @@ function loadVideo() {
   }, 50);
 }
 
+export const urlIcons = (url) => {
+  if(url.match(/https:\/\/creativecommons.org\/licenses\/by-nc\//)){
+    return ['cc', 'by', 'nc']
+  }
+  else if(url.match(/https:\/\/creativecommons.org\/licenses\/by\//)){
+    return ['cc', 'by']
+  }
+  else if(url.match(/https:\/\/creativecommons.org\/licenses\/by-sa\//)){
+    return ['cc', 'by', 'sa']
+  }
+  else if(url.match(/https:\/\/creativecommons.org\/licenses\/by-nc\//)){
+    return ['cc', 'by', 'nc']
+  }
+  else if(url.match(/https:\/\/creativecommons.org\/licenses\/by-nd\//)){
+    return ['cc', 'by', 'nd']
+  }
+  else if(url.match(/https:\/\/creativecommons.org\/publicdomain\/mark\//)){
+    return ['cc', 'pd']
+  }
+  else if(url.match(/http:\/\/rightsstatements.org\/vocab\/InC\//)){
+    return ['Inc']
+  }
+}
+
+export const initializeAttribution = () => {
+
+  let btnInfo         = $('<div class="btn icon-info">&#128712;</div>').appendTo($('.controls-container'));
+  let htmlAttribution = manifestJsonld.attribution.en;
+
+  if(typeof htmlAttribution !== 'string'){
+    htmlAttribution = ['Title', 'Creator', 'Date', 'Institution', 'Country'].map((name) => {
+      return `
+        <div class="field">
+          <span class="fname">${name}</span>
+          <span class="fvalue">${name === 'Title' ? manifestJsonld.label[Object.keys(manifestJsonld.label)[0]] :
+              name === 'Institution' ? '<a href="http:europeana.eu">' + name + ' goes here</a>' :
+              name + ' goes here'
+            }
+          </span>
+        </div>`;
+    }).join('');
+
+    let about      = 'https://www.europeana.eu/portal/record/2022362/_Royal_Museums_Greenwich__http___collections_rmg_co_uk_collections_objects_573492';
+    let rightItems = urlIcons('https://creativecommons.org/publicdomain/mark/1.0/').map((key) => `<li class="icon-license-${key}"></li>`).join('');
+
+    htmlAttribution += `
+      <div class="field">
+        <span class="fname">Rights</span>
+        <div class="fvalue">
+          <ul class="rights-list">${rightItems}</ul>
+          <a href='http://rightsstatements.org/vocab/InC/1.0/' rel='xhv:license http://www.europeana.eu/schemas/edm/rights'>In Copyright</a>
+        </div>
+      </div>`;
+    htmlAttribution = `<div class="attribution" about="${about}">${htmlAttribution}</div>`;
+  }
+
+  let attribution = $(htmlAttribution).appendTo($('.info'));
+
+  attribution.on('click', ()=> {
+    attribution.removeClass('showing');
+  });
+  btnInfo.on('click', ()=> {
+    attribution.addClass('showing');
+  });
+  attribution.addClass('showing');
+};
+
 export const initializeEmbed = () => {
+
   $('.player-wrapper').removeClass('loading');
 
+  if(timeUpdate){
+    window.clearInterval(timeUpdate);
+  }
   timeUpdate = setInterval(() => mediaHasEnded(player.hasEnded()), 50);
 
   getSubtitles();
@@ -123,11 +205,9 @@ export const initializeEmbed = () => {
 
   //let langCode = manifestMetadata.find(obj => obj.label.en[0] == "language").value[Object.keys(manifestMetadata.find(obj => obj.label.en[0] == "language").value)[0]][0];
   if (manifestJsonld.label) {
-    $(".video-title").text(manifestJsonld.label[Object.keys(manifestJsonld.label)[0]]);
+    $('.title').text(manifestJsonld.label[Object.keys(manifestJsonld.label)[0]]);
+    $('.logo').removeAttr('style');
   }
-  //if (manifestJsonld.description) {
-  //  $(".video-description").text(manifestJsonld.description[Object.keys(manifestJsonld.description)[0]]);
-  //}
 
   if (duration == -1 && manifestJsonld.items[0].duration) {
      duration = manifestJsonld.items[0].duration;

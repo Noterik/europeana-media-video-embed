@@ -1,9 +1,16 @@
+@import 'licenses';
+//$title-height: 70px;
+$title-height: 54px;
+$def-padding: 16px;
+$mid-grey: #4b4b4b;
+$min-width: 375px;
+
+$bp-med: 50em;
+$bp-large: 60em;
+
 body{
-  background-color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   font-family: 'Open Sans', sans-serif;
+  min-width: $min-width;
 }
 
 .aspect-ratio{
@@ -11,9 +18,89 @@ body{
   max-width: 100%;
 }
 
+.attribution{
+  background: #fff;
+  border: 1px solid $mid-grey;
+  bottom: 0;
+  color: #000;
+  display: none;
+  font-size: 14px;
+  max-width: 375px;
+  padding: $def-padding;
+  pointer-events: all;
+
+  position: absolute;
+  right: 0;
+  z-index: 1;
+
+  .field{
+    box-sizing: border-box;
+    display: flex;
+    line-height: 19px;
+    max-height: 38px;
+    overflow: hidden;
+    &:not(:first-child){
+      margin-top: 6px;
+    }
+  }
+  .fname{
+    color: $mid-grey;
+    &::after{
+      content: ':';
+      margin-right: 0.5em;
+    }
+  }
+
+  &.showing{
+    display: block;
+  }
+
+  a{
+    color: #000;
+    text-decoration: none;
+    &:hover{
+      text-decoration: underline;
+    }
+  }
+}
+
+.video .attribution{
+  bottom: 46px;
+}
+
+.iiif-av-component .controls-container .btn.icon-info{
+  color: #D6D9DD;
+  cursor: pointer;
+  display: inline-block;
+  float: right;
+  font-size: 24px;
+  height: 1em;
+  margin-top: -5px;
+  width: 1em;
+
+  &:hover{
+    color: #fff;
+  }
+}
+
 .player-wrapper {
   background-color: #eee;
   position: relative;
+  overflow: hidden;
+
+  &.loading::after{
+    content: '';
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+    animation-name: placeHolderShimmer;
+    animation-timing-function: linear;
+    background: linear-gradient(to right, #eeeeee 10%, #dddddd 18%, #eeeeee 33%);
+    background-size: 300% 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    width: 100%;
+  }
 }
 
 @keyframes placeHolderShimmer{
@@ -25,55 +112,56 @@ body{
   }
 }
 
-.player-wrapper.loading::after{
-  content: '';
-  animation-duration: 2s;
-  animation-iteration-count: infinite;
-  animation-name: placeHolderShimmer;
-  animation-timing-function: linear;
-  background: linear-gradient(to right, #eeeeee 10%, #dddddd 18%, #eeeeee 33%);
-  background-size: 300% 100%;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  width: 100%;
-}
-
 .eups-player{
   position: absolute;
   top: 0;
 }
 
-.video-title {
-  background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%);
-  XXXbackground: rgba(0, 0, 0, 0.3);
-  color: #fff;
-  font-size: 20px;
-  font-weight: bold;
+.video {
+  .title-logo {
+    align-items: center;
+    background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%);
+    justify-content: space-between;
+    display: flex;
+  }
+  .logo {
+    display: block;
+    padding: $def-padding $def-padding 0 0;
+    max-width: 40px;
+  }
+  .title {
+    box-sizing: border-box;
+    color: #fff;
+    display: block;
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 27px;
+    overflow: hidden;
+    padding: 0 $def-padding;
+    position: relative;
+    top: 0;
+    transition: top 0.4s ease 0s;
 
-  XXXheight: 135px;
-  XXXheight: 8.5em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 
-  line-height: 25px;
-  max-height: 75px; //3em;
-  overflow: hidden;
-  padding: 16px;
-  position: relative;
-
-
-  XXXtext-align: center;
-  top: 0;
-  transition: top 1s ease 0s;
+    @media (min-width: $bp-large) { // allow 2 lines
+      white-space: normal;
+      text-overflow: unset;
+      max-height: $title-height;
+    }
+  }
 }
 
-.playing .video-title{
-  XXXdisplay: none;
-  top: -3em;
-}
-
-.playing:hover .video-title{
-  display: block;
-  top: 0;
+.playing{
+  .title{
+    top: calc(0px -  #{$title-height});
+  }
+  &:hover{
+    .title{
+      top: 0;
+    }
+  }
 }
 
 .info{
@@ -85,4 +173,17 @@ body{
   right: 0;
   top: 0;
   z-index: 1;
+}
+
+.rights-list{
+  display: inline;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  li{
+    display: inline;
+  }
+  & ~ a {
+    text-transform: uppercase;
+  }
 }
