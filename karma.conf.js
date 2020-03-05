@@ -52,6 +52,11 @@ module.exports = function (config) {
               //presets: ['@babel/preset-env']
               presets: ['babel-preset-es2015']
             }
+          },
+          {
+            test: /\.[s]?css$/,
+            exclude: /(node_modules)/,
+            loader: 'style-loader!css-loader!sass-loader'
           }
         ]
       }

@@ -1,16 +1,16 @@
-@import 'licenses';
-//$title-height: 70px;
 $title-height: 54px;
 $def-padding: 16px;
 $mid-grey: #4b4b4b;
-$min-width: 375px;
+// $min-width: 375px;
 
 $bp-med: 50em;
 $bp-large: 60em;
 
 body{
   font-family: 'Open Sans', sans-serif;
-  min-width: $min-width;
+  margin: 0;
+  // min-width: $min-width;
+  padding: 0;
 }
 
 .aspect-ratio{
@@ -68,18 +68,20 @@ body{
   bottom: 46px;
 }
 
-.iiif-av-component .controls-container .btn.icon-info{
-  color: #D6D9DD;
+.iiif-av-component .controls-container .btn.btn-info{
+  background-image: url('/ic-info.png');
+  background-repeat: no-repeat;
+  opacity: 70%;
   cursor: pointer;
   display: inline-block;
   float: right;
   font-size: 24px;
   height: 1em;
-  margin-top: -5px;
+  margin-top: 5px;
   width: 1em;
 
   &:hover{
-    color: #fff;
+    opacity: 100%;
   }
 }
 
@@ -140,8 +142,8 @@ body{
     padding: 0 $def-padding;
     position: relative;
     top: 0;
-    transition: top 0.4s ease 0s;
-
+    transition: transform 0.4s ease 0s;
+    transform: translateY(0);
     text-overflow: ellipsis;
     white-space: nowrap;
 
@@ -155,7 +157,7 @@ body{
 
 .playing{
   .title{
-    top: calc(0px -  #{$title-height});
+    transform: translateY(calc(-100% - 18px ));
   }
   &:hover{
     .title{
@@ -172,18 +174,5 @@ body{
   position: absolute;
   right: 0;
   top: 0;
-  z-index: 1;
-}
-
-.rights-list{
-  display: inline;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  li{
-    display: inline;
-  }
-  & ~ a {
-    text-transform: uppercase;
-  }
+  z-index: 2;
 }

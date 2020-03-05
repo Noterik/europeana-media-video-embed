@@ -122,61 +122,42 @@ function loadVideo() {
   }, 50);
 }
 
-export const urlIcons = (url) => {
-  if(url.match(/https:\/\/creativecommons.org\/licenses\/by-nc\//)){
-    return ['cc', 'by', 'nc']
-  }
-  else if(url.match(/https:\/\/creativecommons.org\/licenses\/by\//)){
-    return ['cc', 'by']
-  }
-  else if(url.match(/https:\/\/creativecommons.org\/licenses\/by-sa\//)){
-    return ['cc', 'by', 'sa']
-  }
-  else if(url.match(/https:\/\/creativecommons.org\/licenses\/by-nc\//)){
-    return ['cc', 'by', 'nc']
-  }
-  else if(url.match(/https:\/\/creativecommons.org\/licenses\/by-nd\//)){
-    return ['cc', 'by', 'nd']
-  }
-  else if(url.match(/https:\/\/creativecommons.org\/publicdomain\/mark\//)){
-    return ['cc', 'pd']
-  }
-  else if(url.match(/http:\/\/rightsstatements.org\/vocab\/InC\//)){
-    return ['Inc']
-  }
-}
-
 export const initializeAttribution = () => {
 
-  let btnInfo         = $('<div class="btn icon-info">&#128712;</div>').appendTo($('.controls-container'));
+  let btnInfo         = $('<span class="btn btn-info"></span>').appendTo($('.controls-container'));
   let htmlAttribution = manifestJsonld.attribution.en;
 
+  // TODO: temp code until API supplies this markup
   if(typeof htmlAttribution !== 'string'){
-    htmlAttribution = ['Title', 'Creator', 'Date', 'Institution', 'Country'].map((name) => {
+    const generateRightsList = () => {
+      let rightItems = ['cc', 'by', 'sa'].map((key) => `<li class="icon-${key}"></li>`).join('');
+      return `<ul class="rights-list">${rightItems}</ul>`;
+    };
+
+    let testLicense = 'https://creativecommons.org/licenses/by-sa/2.0/';
+    let about      = 'https://www.europeana.eu/portal/record/2022362/_Royal_Museums_Greenwich__http___collections_rmg_co_uk_collections_objects_573492';
+    htmlAttribution = ['Title', 'Creator', 'Date', 'Institution', 'Country', 'Rights'].map((name) => {
       return `
         <div class="field">
           <span class="fname">${name}</span>
-          <span class="fvalue">${name === 'Title' ? manifestJsonld.label[Object.keys(manifestJsonld.label)[0]] :
-              name === 'Institution' ? '<a href="http:europeana.eu">' + name + ' goes here</a>' :
+          <span class="fvalue"
+            ${name === 'Rights' ? 'property="cc:License"' : '' }
+          >${name === 'Title' ? manifestJsonld.label[Object.keys(manifestJsonld.label)[0]] :
+            name === 'Institution' ? '<a href="http:europeana.eu">' + name + ' goes here</a>' :
+            name === 'Rights' ? generateRightsList() + `<a href="${testLicense}">Copyright</a>` :
               name + ' goes here'
             }
           </span>
         </div>`;
     }).join('');
-
-    let about      = 'https://www.europeana.eu/portal/record/2022362/_Royal_Museums_Greenwich__http___collections_rmg_co_uk_collections_objects_573492';
-    let rightItems = urlIcons('https://creativecommons.org/publicdomain/mark/1.0/').map((key) => `<li class="icon-license-${key}"></li>`).join('');
-
-    htmlAttribution += `
-      <div class="field">
-        <span class="fname">Rights</span>
-        <div class="fvalue">
-          <ul class="rights-list">${rightItems}</ul>
-          <a href='http://rightsstatements.org/vocab/InC/1.0/' rel='xhv:license http://www.europeana.eu/schemas/edm/rights'>In Copyright</a>
-        </div>
-      </div>`;
     htmlAttribution = `<div class="attribution" about="${about}">${htmlAttribution}</div>`;
+    htmlAttribution = `<style type="text/css">
+      @import url('/icons/style.css');
+      @import url('/icons/europeana.css');
+      </style>` + htmlAttribution;
+
   }
+  // end temp code
 
   let attribution = $(htmlAttribution).appendTo($('.info'));
 
@@ -186,7 +167,6 @@ export const initializeAttribution = () => {
   btnInfo.on('click', ()=> {
     attribution.addClass('showing');
   });
-  attribution.addClass('showing');
 };
 
 export const initializeEmbed = () => {

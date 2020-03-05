@@ -1,6 +1,6 @@
 import * as index  from '../src/index';
 
-//var $ = require("jquery");
+var $ = require("jquery");
 
 describe('index functions', () => {
 
@@ -23,24 +23,12 @@ describe('index functions', () => {
     //expect(index.currentMediaItem).toEqual(1);
   });
 
-  // requires jQuery
-
   it('should initialise the embed', () => {
-
     const fixture = '<div class="player-wrapper loading"></div>';
     document.body.insertAdjacentHTML('afterbegin', fixture);
-
     let wrapperEl = document.querySelector('.player-wrapper');
-
-    /*
-    expect(wrapperEl.classList).toContain('loading').
-
-    expect(index.timeUpdate).toBeFalsy();
-
-    index.initializeEmbed();
-
-    expect(index.timeUpdate).not.toBeFalsy();
-    expect(wrapperEl.classList).not.toContain('loading');
-    */
+    expect(wrapperEl.classList.contains('loading')).toBeTruthy();
+    //index.initializeEmbed();
+    //expect(wrapperEl.classList.contains('loading')).toBeFalsy();
   });
 });
