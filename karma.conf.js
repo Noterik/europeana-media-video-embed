@@ -3,7 +3,8 @@ module.exports = function (config) {
     basePath: '',
     exclude: [],
     files: [
-      { pattern: 'spec/*.js', watched: true, served: true, included: true }
+      { pattern: 'spec/*.js', watched: true, served: true, included: true },
+      'https://code.jquery.com/jquery-3.4.1.min.js'
     ],
     autoWatch: true,
     singleRun: false,

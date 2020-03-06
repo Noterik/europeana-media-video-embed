@@ -1,131 +1,108 @@
 import './index.scss';
 
-let mediaMode = '';
-
 const embedHost = 'https://embd.eu/api/embed/';
 const EuropeanaMediaPlayer = require("europeanamediaplayer").default;
 
-//var options = {embedid: "6FFlHN"}; mediaMode = 'video';
-//var options = {embedid: "WZpDVT"}; mediaMode = 'video';
-//var options = {embedid: "qBUhte"}; mediaMode = 'video';
-//var options = {embedid: "6BGMFG"}; mediaMode = 'video';
-const options = {embedid: "Y1pbs4"}; mediaMode = 'video';
+//localhost:9001?manifest=https%3A%2F%2Fiiif.europeana.eu%2F%2Fpresentation%2F%2F08609%2F%2Ffe9c5449_9522_4a70_951b_ef0b27893ae9%2F%2Fmanifest%3Fformat%3D3%26wskey%3Dapi2demo
+//const options = {embedid: "6FFlHN"};
+//const options = {embedid: "WZpDVT"};
+//const options = {embedid: "qBUhte"};
+//const options = {embedid: "6BGMFG"};
+//const options = {embedid: "Y1pbs4"};
 
-//const options = {embedid: "7FQEZr"}; mediaMode = 'image'
+// VIDEO
+//http://localhost:9001/?width=960&height=720&manifest=https%3A%2F%2Fiiif.europeana.eu%2F%2Fpresentation%2F%2F08609%2F%2Ffe9c5449_9522_4a70_951b_ef0b27893ae9%2F%2Fmanifest%3Fformat%3D3%26wskey%3Dapi2demo
+// IMAGE
+//http://localhost:9001/?width=260&height=520&manifest=https%3A%2F%2Fiiif.europeana.eu%2Fpresentation%2F2021672%2Fresource_document_mauritshuis_670%2Fmanifest%3Fformat%3D3%26wskey%3Dapi2demo
 
 var manifest;
-var manifests = [];
-var embedWidth;
-var embedHeight;
-var player;
-var manifestJsonld = {};
-var manifestMetadata = {};
-var subtitles = {};
-let currentMediaItem = 1;
-export { currentMediaItem };
 
-let timeUpdate;
-export { timeUpdate };
+let player;
+export { player };
 
-var start = 0;
 var duration = -1;
 var playing = false;
 
 window.addEventListener('load', () => {
 
-  if (window.location.pathname.length > 1) {
-    options.embedid = window.location.pathname.substring(1);
+  const urlParams = getAllUrlParams(window.location.href);
+
+  if(urlParams.manifest){
+
+    loadJSON(urlParams.manifest, (manifestData) => {
+
+      let mediaMode = manifestData.items[0].items[0].items[0].body.type.toLowerCase();
+
+      $('.player-wrapper').addClass(mediaMode);
+
+      manifest = urlParams.manifest;
+
+      if(urlParams.width && urlParams.height){
+        setEmbedDimensions(urlParams.width, urlParams.height);
+        //setEmbedDimensions(960, 720);
+      }
+
+      if(mediaMode === 'video'){
+        initialisePlayer($('.player-wrapper'), manifest, mediaMode);
+      }
+      else{
+        $('.player-wrapper').removeClass('loading');
+        $('.aspect-ratio').addClass('disabled').after(`<img class="simple-image" src ="${manifestData.thumbnail[0].id}"/>`);
+        initialiseAttribution(manifestData.items[0], mediaMode);
+      }
+    });
+  }
+  else{
+    console.log('no manifest supplied');
   }
 
-  getEmbedInfo();
-
-  if (getAllUrlParams(window.location.href).t != undefined) {
-    options.temporal = decodeURIComponent(getAllUrlParams(window.location.href).t);
+  if (urlParams.t !== undefined) {
+    //options.temporal = urlParams.t;
     //construct start and duration of the temporal fragment
-    if (options.temporal.indexOf(",") > -1) {
-      let parts = options.temporal.split(",");
-      start = parts[0];
+    let parts = urlParams.t.split(',');
+    if(split.length > 1){
       duration = parts[1] - parts[0];
     }
   }
 });
 
-function getEmbedInfo() {
-  let link = `${embedHost}${options.embedid}`;
-  fetch(
-      link, {
-          method: 'GET',
-          mode: 'cors',
-          headers: { "Content-Type": "application/json; charset=utf-8" }
-      })
+export const loadJSON = (jsonUrl, cb) => {
+
+  fetch(jsonUrl, {
+    mode: 'cors',
+    method: 'GET',
+    headers: { "Content-Type": "application/json; charset=utf-8" }
+  })
   .then(res => res.json())
   .then(response => {
-
-      $('body').addClass(mediaMode);
-
-      if(mediaMode === 'image'){
-        console.log('TODO: handle images');
-      }
-      else if(mediaMode === 'video'){
-        if (Array.isArray(response.videoid)) {
-          manifests = response.videoid;
-          manifest = manifests[0].vid;
-        } else {
-          manifest = response.videoid;
-        }
-        embedWidth = response.width;
-        embedHeight = response.height;
-        loadVideo();
-      }
+    cb(response);
   })
-  .catch(err => {
-      console.error("Could not retrieve embed info");
-      console.log(err);
+  .catch((err) => {
+    console.error(`Could not load ${jsonUrl}`);
+    console.log(err);
   });
-}
+};
 
-function loadVideo() {
-  $(".player-wrapper").css({"max-width": embedWidth + 'px', "max-height": embedHeight + 'px' });
-  $(".aspect-ratio").width(embedWidth);
+export const setEmbedDimensions = (w, h) => {
+  $('.player-wrapper').css({'max-width': w + 'px', 'max-height': h + 'px' });
+  $('.aspect-ratio').width(w);
+};
 
+/*
+export const loadVideo = () => {
   if (options.temporal) {
     manifest = `${embedHost}${options.embedid}/t/${options.temporal}`;
   }
+  initialisePlayer($('.player-wrapper'));
+};
+*/
 
-  let vObj = {manifest: manifest};
-  let opt = {mode: "player"};
-  opt.manifest = manifest;
+export const initialiseAttribution = (manifestJsonld, mediaMode) => {
 
-  setTimeout(function() {
-    let p = new EuropeanaMediaPlayer($('.player-wrapper'), vObj, opt);
-    player = p.player;
-
-    player.avcomponent.on('mediaerror', function() {
-      initializeEmbed();
-    });
-
-    player.avcomponent.on('mediaready', function() {
-      initializeEmbed();
-      initializeAttribution();
-    });
-
-    player.avcomponent.on('play', function() {
-      playing = true;
-      $('.player-wrapper').addClass('playing');
-    });
-
-    player.avcomponent.on('pause', function() {
-      playing = false;
-      $('.player-wrapper').removeClass('playing');
-    });
-
-  }, 50);
-}
-
-export const initializeAttribution = () => {
-
-  let btnInfo         = $('<span class="btn btn-info"></span>').appendTo($('.controls-container'));
   let htmlAttribution = manifestJsonld.attribution.en;
+  let btnInfo         = $('<span class="btn btn-info"></span>').appendTo(
+    mediaMode === 'video' ? $('.controls-container') : $('.info')
+  );
 
   // TODO: temp code until API supplies this markup
   if(typeof htmlAttribution !== 'string'){
@@ -138,24 +115,38 @@ export const initializeAttribution = () => {
     let about      = 'https://www.europeana.eu/portal/record/2022362/_Royal_Museums_Greenwich__http___collections_rmg_co_uk_collections_objects_573492';
     htmlAttribution = ['Title', 'Creator', 'Date', 'Institution', 'Country', 'Rights'].map((name) => {
       return `
-        <div class="field">
+        <span class="field">
           <span class="fname">${name}</span>
           <span class="fvalue"
             ${name === 'Rights' ? 'property="cc:License"' : '' }
           >${name === 'Title' ? manifestJsonld.label[Object.keys(manifestJsonld.label)[0]] :
-            name === 'Institution' ? '<a href="http:europeana.eu">' + name + ' goes here</a>' :
-            name === 'Rights' ? generateRightsList() + `<a href="${testLicense}">Copyright</a>` :
-              name + ' goes here'
-            }
-          </span>
-        </div>`;
+            name === 'Institution' ? '<a href="http://europeana.eu" target="_blank" rel="noopener">' + name + ' goes here</a>' :
+            name === 'Rights' ? generateRightsList() + `<a href="${testLicense}" target="_blank" rel="noopener">Copyright</a>` :
+              name + ' goes here'}</span></span>`;
     }).join('');
     htmlAttribution = `<div class="attribution" about="${about}">${htmlAttribution}</div>`;
     htmlAttribution = `<style type="text/css">
       @import url('/icons/style.css');
-      @import url('/icons/europeana.css');
+      .field:not(:last-child)::after{
+        content: ', ';
+      }
+      .fname{
+        display: none;
+      }
+      .rights-list{
+        display: inline;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .rights-list li{
+        display: inline;
+        margin-right: 4px;
+      }
+      .rights-list li a{
+        text-transform: uppercase;
+      }
       </style>` + htmlAttribution;
-
   }
   // end temp code
 
@@ -169,20 +160,17 @@ export const initializeAttribution = () => {
   });
 };
 
-export const initializeEmbed = () => {
+
+export const initialiseEmbed = (mediaMode) => {
 
   $('.player-wrapper').removeClass('loading');
+  // getSubtitles();
 
-  if(timeUpdate){
-    window.clearInterval(timeUpdate);
-  }
-  timeUpdate = setInterval(() => mediaHasEnded(player.hasEnded()), 50);
+  let manifestJsonld = player.manifest.__jsonld;
 
-  getSubtitles();
+  initialiseAttribution(manifestJsonld, mediaMode);
 
-  manifestJsonld = player.manifest.__jsonld;
-  manifestMetadata = manifestJsonld.metaData;
-
+  //let manifestMetadata = manifestJsonld.metaData;
   //let langCode = manifestMetadata.find(obj => obj.label.en[0] == "language").value[Object.keys(manifestMetadata.find(obj => obj.label.en[0] == "language").value)[0]][0];
   if (manifestJsonld.label) {
     $('.title').text(manifestJsonld.label[Object.keys(manifestJsonld.label)[0]]);
@@ -190,25 +178,19 @@ export const initializeEmbed = () => {
   }
 
   if (duration == -1 && manifestJsonld.items[0].duration) {
-     duration = manifestJsonld.items[0].duration;
+    duration = manifestJsonld.items[0].duration;
   }
 }
 
+/*
 function getSubtitles() {
+  let subtitles = {};
   let link = `${embedHost}${options.embedid}/subtitles`
-
   if (options.temporal) {
     link += `/t/${options.temporal}`;
   }
 
-  fetch(
-      link, {
-          method: 'GET',
-          mode: 'cors',
-          headers: { "Content-Type": "application/json; charset=utf-8" }
-      })
-  .then(res => res.json())
-  .then(response => {
+  loadJSON(link, (response) => {
       let   subs = response;
       subs.forEach(function(subtitle) {
         let language = subtitle.language;
@@ -231,53 +213,40 @@ function getSubtitles() {
         });
       }
       player.initLanguages();
-  })
-  .catch(err => {
-      console.error("Could not retrieve subtitles");
-      console.log(err);
+  });
+}
+*/
+
+export const initialisePlayer = (playerWrapper, mediaUrl, mediaMode) => {
+  let p = new EuropeanaMediaPlayer(playerWrapper, {manifest: mediaUrl}, {mode: "player", manifest: mediaUrl});
+  player = p.player;
+  player.avcomponent.on('mediaerror', function() {
+    console.log('mediaerror (reinit)')
+    initialiseEmbed(mediaMode);
+  });
+  player.avcomponent.on('mediaready', function() {
+    console.log('mediaready (reinit)')
+    initialiseEmbed(mediaMode);
+  });
+  player.avcomponent.on('play', () => {
+    playing = true;
+    playerWrapper.addClass('playing');
+  });
+  player.avcomponent.on('pause', () => {
+    playing = false;
+    playerWrapper.removeClass('playing');
   });
 }
 
-export const mediaHasEnded = (ended) => {
-  if ((ended || player.avcomponent.getCurrentTime() == duration) && currentMediaItem < manifests.length) {
-    //load next playlist item
-    manifest = manifests[currentMediaItem].vid;
-    currentMediaItem ++;
-
-    //clear
-    $('.player-wrapper').empty();
-
-    let vObj = {manifest: manifest};
-    let opt = {mode: "player"};
-    opt.manifest = manifest;
-
-    let p = new EuropeanaMediaPlayer($('.player-wrapper'), vObj, opt);
-    player = p.player;
-
-    player.avcomponent.on('mediaerror', function() {
-      initializeEmbed();
-    });
-
-    player.avcomponent.on('mediaready', function() {
-      initializeEmbed();
-    });
-  }
-};
-
 export const getAllUrlParams = (url) => {
   // get query string from url (optional) or window
-  var queryString = url ? url.split('?')[1] : window.location.search.slice(1);
-
-  // we'll store the parameters here
-  var obj = {};
-
-  // if query string exists
+  let queryString = url ? url.split('?')[1] : window.location.search.slice(1);
+  let obj = {};
   if (queryString) {
 
-    // stuff after # is not part of query string, so get rid of it
+    // remove hash param
     queryString = queryString.split('#')[0];
 
-    // split our query string into its component parts
     var arr = queryString.split('&');
 
     for (var i = 0; i < arr.length; i++) {
@@ -286,11 +255,7 @@ export const getAllUrlParams = (url) => {
 
       // set parameter name and value (use 'true' if empty)
       var paramName = a[0];
-      var paramValue = typeof (a[1]) === 'undefined' ? true : a[1];
-
-      // (optional) keep case consistent
-      paramName = paramName.toLowerCase();
-      //if (typeof paramValue === 'string') paramValue = paramValue.toLowerCase();
+      var paramValue = typeof (a[1]) === 'undefined' ? true : decodeURIComponent(a[1]);
 
       // if the paramName ends with square brackets, e.g. colors[] or colors[2]
       if (paramName.match(/\[(\d+)?\]$/)) {

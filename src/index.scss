@@ -16,6 +16,9 @@ body{
 .aspect-ratio{
   max-height: 100%;
   max-width: 100%;
+  &.disabled{
+    display: none;
+  }
 }
 
 .attribution{
@@ -42,9 +45,13 @@ body{
     &:not(:first-child){
       margin-top: 6px;
     }
+    &:not(:last-child)::after{
+      content: '';
+    }
   }
   .fname{
     color: $mid-grey;
+    display: inline-block;
     &::after{
       content: ':';
       margin-right: 0.5em;
@@ -68,27 +75,57 @@ body{
   bottom: 46px;
 }
 
-.iiif-av-component .controls-container .btn.btn-info{
-  background-image: url('/ic-info.png');
-  background-repeat: no-repeat;
-  opacity: 70%;
-  cursor: pointer;
-  display: inline-block;
-  float: right;
-  font-size: 24px;
-  height: 1em;
-  margin-top: 5px;
-  width: 1em;
-
-  &:hover{
-    opacity: 100%;
-  }
-}
-
 .player-wrapper {
   background-color: #eee;
   position: relative;
   overflow: hidden;
+
+  &.video {
+    .title-logo {
+      align-items: center;
+      background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%);
+      justify-content: space-between;
+      display: flex;
+    }
+    .logo {
+      display: block;
+      padding: $def-padding $def-padding 0 0;
+      max-width: 40px;
+    }
+    .title {
+      box-sizing: border-box;
+      color: #fff;
+      display: block;
+      font-size: 20px;
+      font-weight: bold;
+      line-height: 27px;
+      overflow: hidden;
+      padding: 0 $def-padding;
+      position: relative;
+      top: 0;
+      transition: transform 0.4s ease 0s;
+      transform: translateY(0);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      @media (min-width: $bp-large) { // allow 2 lines
+        white-space: normal;
+        text-overflow: unset;
+        max-height: $title-height;
+      }
+    }
+
+    &.playing{
+      .title{
+        transform: translateY(calc(-100% - 20px ));
+      }
+      &:hover{
+        .title{
+          top: 0;
+        }
+      }
+    }
+  }
 
   &.loading::after{
     content: '';
@@ -103,6 +140,34 @@ body{
     top: 0;
     width: 100%;
   }
+
+  .btn.btn-info{
+    background-image: url('/ic-info.png');
+    background-repeat: no-repeat;
+    opacity: 70%;
+    cursor: pointer;
+    display: inline-block;
+    font-size: 24px;
+    height: 1em;
+    margin-top: 5px;
+    width: 1em;
+
+    &:hover{
+      opacity: 100%;
+    }
+  }
+
+  &.video .iiif-av-component .controls-container .btn.btn-info{
+    float: right;
+  }
+
+  &.image .btn.btn-info{
+    bottom: 16px;
+    pointer-events: all;
+    position: absolute;
+    right: 16px;
+  }
+
 }
 
 @keyframes placeHolderShimmer{
@@ -119,51 +184,12 @@ body{
   top: 0;
 }
 
-.video {
-  .title-logo {
-    align-items: center;
-    background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%);
-    justify-content: space-between;
-    display: flex;
-  }
-  .logo {
-    display: block;
-    padding: $def-padding $def-padding 0 0;
-    max-width: 40px;
-  }
-  .title {
-    box-sizing: border-box;
-    color: #fff;
-    display: block;
-    font-size: 20px;
-    font-weight: bold;
-    line-height: 27px;
-    overflow: hidden;
-    padding: 0 $def-padding;
-    position: relative;
-    top: 0;
-    transition: transform 0.4s ease 0s;
-    transform: translateY(0);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-
-    @media (min-width: $bp-large) { // allow 2 lines
-      white-space: normal;
-      text-overflow: unset;
-      max-height: $title-height;
-    }
-  }
-}
-
-.playing{
-  .title{
-    transform: translateY(calc(-100% - 18px ));
-  }
-  &:hover{
-    .title{
-      top: 0;
-    }
-  }
+.simple-image{
+  border: 0;
+  display: block;
+  margin: 0;
+  padding: 0;
+  width: 100%;
 }
 
 .info{
