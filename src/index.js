@@ -101,7 +101,7 @@ export const initialiseAttribution = (manifestJsonld, mediaMode) => {
 
   let htmlAttribution = manifestJsonld.attribution.en;
   let btnInfo         = $('<span class="btn btn-info"></span>').appendTo(
-    mediaMode === 'video' ? $('.controls-container') : $('.info')
+    ['audio', 'video'].indexOf(mediaMode) > -1 ? $('.controls-container') : $('.info')
   );
 
   // TODO: temp code until API supplies this markup
