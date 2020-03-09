@@ -14,6 +14,8 @@ const EuropeanaMediaPlayer = require("europeanamediaplayer").default;
 //http://localhost:9001/?width=960&height=720&manifest=https%3A%2F%2Fiiif.europeana.eu%2F%2Fpresentation%2F%2F08609%2F%2Ffe9c5449_9522_4a70_951b_ef0b27893ae9%2F%2Fmanifest%3Fformat%3D3%26wskey%3Dapi2demo
 // IMAGE
 //http://localhost:9001/?width=260&height=520&manifest=https%3A%2F%2Fiiif.europeana.eu%2Fpresentation%2F2021672%2Fresource_document_mauritshuis_670%2Fmanifest%3Fformat%3D3%26wskey%3Dapi2demo
+// AUDIO
+//http://localhost:9001/?width=260&height=520&manifest=https%3A%2F%2Fiiif.europeana.eu%2Fpresentation%2F22%2F_72315%2Fmanifest%3Fformat%3D3%26wskey%3Dapi2demo
 
 var manifest;
 
@@ -42,12 +44,11 @@ window.addEventListener('load', () => {
         //setEmbedDimensions(960, 720);
       }
 
-      if(mediaMode === 'video'){
+      if(['audio', 'video'].indexOf(mediaMode) > -1){
         initialisePlayer($('.player-wrapper'), manifest, mediaMode);
       }
       else{
         $('.player-wrapper').removeClass('loading');
-        $('.aspect-ratio').addClass('disabled').after(`<img class="simple-image" src ="${manifestData.thumbnail[0].id}"/>`);
         initialiseAttribution(manifestData.items[0], mediaMode);
       }
     });
@@ -85,7 +86,6 @@ export const loadJSON = (jsonUrl, cb) => {
 
 export const setEmbedDimensions = (w, h) => {
   $('.player-wrapper').css({'max-width': w + 'px', 'max-height': h + 'px' });
-  $('.aspect-ratio').width(w);
 };
 
 /*

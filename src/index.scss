@@ -13,14 +13,6 @@ body{
   padding: 0;
 }
 
-.aspect-ratio{
-  max-height: 100%;
-  max-width: 100%;
-  &.disabled{
-    display: none;
-  }
-}
-
 .attribution{
   background: #fff;
   border: 1px solid $mid-grey;
@@ -81,6 +73,9 @@ body{
   overflow: hidden;
 
   &.video {
+    // force the aspect ratio
+    padding-top: 75%;
+
     .title-logo {
       align-items: center;
       background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%);
