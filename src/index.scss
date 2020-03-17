@@ -75,6 +75,10 @@ body{
   position: relative;
   overflow: hidden;
 
+  &.image > img{
+    min-width: 100%;
+    max-width: 100%;
+  }
   &.audio,
   &.video {
     // force the aspect ratio

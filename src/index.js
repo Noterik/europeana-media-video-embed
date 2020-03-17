@@ -34,7 +34,6 @@ window.addEventListener('load', () => {
     loadJSON(urlParams.manifest, (manifestData) => {
 
       let mediaMode = manifestData.items[0].items[0].items[0].body.type.toLowerCase();
-
       $('.player-wrapper').addClass(mediaMode);
 
       manifest = urlParams.manifest;
@@ -48,6 +47,9 @@ window.addEventListener('load', () => {
         initialisePlayer($('.player-wrapper'), manifest, mediaMode);
       }
       else{
+        if(mediaMode === 'image'){
+          $('.player-wrapper').append(`<img src="${manifestData.items[0].items[0].items[0].body.id}">`);
+        }
         $('.player-wrapper').removeClass('loading');
         initialiseAttribution(manifestData.items[0], mediaMode);
       }
