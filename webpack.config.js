@@ -9,40 +9,50 @@ const config = function (mode) {
         mode: mode,
         entry: ['./src/index.js'],
         module: {
-            rules: [
-            {
-                test: /\.js$/,
-                exclude: /(node_modules|bower_components)/,
-                use: {
-                    loader: 'babel-loader',
+          rules: [
+              {
+                  test: /\.js$/,
+                  exclude: /(node_modules|bower_components)/,
+                  use: {
+                      loader: 'babel-loader',
+                      options: {
+                        presets: ["babel-preset-es2015"].map(require.resolve)
+                      },
+                  }
+              },
+              {
+                  test: /\.html$/,
+                  exclude: /(node_modules|bower_components)/,
+                  use: {
+                      loader: 'html-loader',
+                      options: {}
+                  }
+              },
+              {
+                test: /\.[s]?css$/,
+                use: [
+                  'style-loader',
+                  {
+                    loader: 'css-loader',
                     options: {
-                        presets: ['env']
+                      sourceMap: true,
                     }
-                }
-            },
-            {
-                test: /\.html$/,
-                exclude: /(node_modules|bower_components)/,
-                use: {
-                    loader: 'html-loader',
-                    options: {}
-                }
-            },
-            {
-              test: /\.css$/,
-              use: ['style-loader', 'css-loader'],
-            },
-        ]
+                  },
+                  { loader: 'sass-loader', options: { sourceMap: true } }
+                ],
+
+              }
+          ]
         },
         output: {
-            path: path.resolve(__dirname, 'public/bundle/'),
+            path: path.resolve(__dirname, 'public/'),
             filename: 'bundle.js',
             publicPath: '/',
         },
         plugins: [
             new webpack.ProvidePlugin({
                 $: "jquery"
-            })
+            }),
         ],
         devServer: {
             watchOptions: {
@@ -57,8 +67,12 @@ const config = function (mode) {
     }
 
     if (mode === 'development') {
-        conf.plugins.push(new webpack.HotModuleReplacementPlugin())
-        conf.plugins.push(new webpack.NoEmitOnErrorsPlugin())
+        conf.plugins.push(new webpack.HotModuleReplacementPlugin());
+        conf.plugins.push(new webpack.NoEmitOnErrorsPlugin());
+        //conf.plugins.push(new MiniCssExtractPlugin({
+        //  filename: "[name].css",
+        //  chunkFilename: "[id].css"
+        //}))
     }
 
     return conf
