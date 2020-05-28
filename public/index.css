@@ -21,8 +21,17 @@ body {
     height: 100% !important;
 }
 
+.eups-player .btn:hover {
+    background-color: transparent;
+}
+
+.eups-player .btn:focus {
+    background-color: transparent;
+}
+
 .header-row {
     margin-bottom: 0 !important;
+    display: none;
 }
 
 #smallrow-header .tabs .tab a {
@@ -68,12 +77,22 @@ body {
     padding-right: 3%;
 }
 
+.video-provider {
+    margin-top: 10px;
+}
+
+#annotations {
+    display: none;
+    position: relative;
+    margin-bottom: 10px;
+}
+
 .annotations {
     margin-top: 13px;
 }
 
 .smallrow {
-    display: none;
+    width: 100%;
 }
 
 .wideseparator {
@@ -125,4 +144,25 @@ body {
     background-color: #F1F1EE;
     border: 2px solid #F1F1EE;
     border-radius: 4px;
+}
+
+.annotation-icon {
+    padding-right: 8px;
+    vertical-align: middle;
+}
+
+#metadata {
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.euscreen-logo {
+    background-image: url("euscreen-logo.png");
+    width: 114px;
+    height: 35px;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background-size: contain;
+    margin-bottom: -20px;
 }

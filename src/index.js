@@ -3,13 +3,22 @@ import Placeload from 'placeload.js'
 import 'materialize-css/dist/css/materialize.min.css';
 import 'materialize-css/dist/js/materialize.min.js';
 
-const EuropeanaMediaPlayer = require("europeanamediaplayer").default;
+require('./icons/euscreen-logo.png');
+require('./icons/speech.svg');
+require('./icons/note.svg');
+require('./icons/title.svg');
+require('./icons/spotlight.svg');
+require('./icons/label.svg');
+require('./icons/pause.svg');
+
+const EuropeanaMediaPlayer = require("EuropeanaMediaPlayer");
 
 //var options = {embedid: "6FFlHN"}; 
 //var options = {embedid: "WZpDVT"};
 //var options = {embedid: "qBUhte"};
 //var options = {embedid: "6BGMFG"};
-var options = {embedid: "Y1pbs4"};
+//var options = {embedid: "Y1pbs4"};
+var options = {embedid: "hT71Rp"};
 var manifest;
 var manifests = [];
 var width;
@@ -25,6 +34,7 @@ var videoLoaderActive = false;
 var tabsInstance;
 var start = 0;
 var duration = -1;
+var language;
 
 window.addEventListener('load', () => {
   if (window.location.pathname.length > 1) {
@@ -41,6 +51,11 @@ window.addEventListener('load', () => {
       start = parts[0];
       duration = parts[1] - parts[0];
     }
+  }
+
+  var hash = window.location.hash;
+  if (hash.length > 1) {
+    language = hash.substr(1);
   }
 });
 
@@ -124,6 +139,9 @@ function loadVideo() {
   let vObj = {manifest: manifest};
   let opt = {mode: "player"};
   opt.manifest = manifest;
+  if (language != undefined && language.length > 0) {
+    opt.language = language;
+  }
 
   getAnnotations();
 
@@ -188,38 +206,30 @@ function initializeEmbed() {
   manifestJsonld = player.manifest.__jsonld;
   manifestMetadata = manifestJsonld.metaData;
 
-  if ($(".content-wrapper").width() > 700) {
-    $(".widecolumn").each(function() {
-      $(this).removeClass("smallrow");
-    })
-    $(".widecolumn").show();
-  } else {
-    $(".smallrow").each(function() {
-      $(this).removeClass("widecolumn");
-    });
-    $(".smallrow").show();
-
-
-    let tabs = document.querySelectorAll('.tabs')[0];
-    let tabOptions = {duration: 300}
-    tabsInstance = M.Tabs.init(tabs, tabOptions);
-
-    var hash = window.location.hash;
-    if (hash.length > 1) {
-      hash = hash.indexOf("?") > -1 ? hash.substring(0, hash.indexOf("?")) : hash;
-      tabsInstance.select(hash.substr(1));
-    } else {
-       tabsInstance.select("metadata");
-    }
-  }
+  $(".smallrow").each(function() {
+    $(this).removeClass("widecolumn");
+  });
 
   //let langCode = manifestMetadata.find(obj => obj.label.en[0] == "language").value[Object.keys(manifestMetadata.find(obj => obj.label.en[0] == "language").value)[0]][0];
   if (manifestJsonld.label) {
     $(".video-title").text(manifestJsonld.label[Object.keys(manifestJsonld.label)[0]]);
   } 
-  if (manifestJsonld.description) {
-    $(".video-description").text(manifestJsonld.description[Object.keys(manifestJsonld.description)[0]]);
+
+  console.log(manifestJsonld.metaData);
+  let euscreenId, provider;
+  if (manifestMetadata.find(obj => obj.label.en[0] == "euscreenIdentifier")) {
+    euscreenId = manifestMetadata.find(obj => obj.label.en[0] == "euscreenIdentifier").value[Object.keys(manifestMetadata.find(obj => obj.label.en[0] == "euscreenIdentifier").value)[0]][0];
+    $(".video-title").wrap('<a href="http://www.euscreen.eu/item.html?id='+euscreenId+'" target="_blank"/>')
   }
+  if (manifestMetadata.find(obj => obj.label.en[0] == "provider")) {
+    provider = manifestMetadata.find(obj => obj.label.en[0] == "provider").value[Object.keys(manifestMetadata.find(obj => obj.label.en[0] == "provider").value)[0]][0];
+    $(".video-provider").text(provider);
+  }
+
+
+  /*if (manifestJsonld.description) {
+    $(".video-description").text(manifestJsonld.description[Object.keys(manifestJsonld.description)[0]]);
+  }*/
 
   if (duration == -1 && manifestJsonld.items[0].duration) {
      duration = manifestJsonld.items[0].duration;
@@ -241,7 +251,23 @@ function getAnnotations() {
       })
   .then(res => res.json())
   .then(response => {
-      let   annotations = response;
+      let  annotations = response;
+      if (annotations.length > 0) {
+        $(".header-row").show();
+        $(".header-body-separate-row").hide();
+
+        let tabs = document.querySelectorAll('.tabs')[0];
+        let tabOptions = {duration: 300}
+        tabsInstance = M.Tabs.init(tabs, tabOptions);
+
+        var hash = window.location.hash;
+        if (hash.length > 1) {
+          hash = hash.indexOf("?") > -1 ? hash.substring(0, hash.indexOf("?")) : hash;
+          tabsInstance.select(hash.substr(1));
+        } else {
+          tabsInstance.select("metadata");
+        }
+      }
       annotations.forEach(function(annotation) {
         addAnnotation(annotation);
       });
@@ -253,10 +279,10 @@ function getAnnotations() {
 }
 
 function addAnnotation(annotation) {
-  $(".annotations").append("<div class='row annotation-row' data-start='"+annotation.start+"'><div class='annotation-timing col s4'>"+formatTime(annotation.start)+" - "+formatTime(annotation.end)+"</div><div class='annotation-text col s8'><span class='annotation-text-inline'>"+annotation.text+"</span></div></div>");
+  $(".annotations").append("<div class='row annotation-row' data-start='"+annotation.start+"'><div class='annotation-timing col s2'>"+formatTime(annotation.start)+" - "+formatTime(annotation.end)+"</div><div class='annotation-text col s10'><img src='"+annotation.type+".svg' class='annotation-icon'/><span class='annotation-text-inline'>"+annotation.text+"</span></div></div>");
 
   $(".annotation-row").on("click", function() {
-    player.avcomponent.setCurrentTime(($(this).data("start") / 1000));
+    player.avcomponent._getCurrentCanvas().setCurrentTime(($(this).data("start") / 1000));
   });
 }
 
@@ -296,7 +322,7 @@ function getSubtitles() {
           track.addCue(cue);
         });
       }
-      player.initLanguages();
+      player.initLanguages(player.elem.find('video')[0].textTracks);
   })
   .catch(err => {
       console.error("Could not retrieve subtitles");
@@ -305,7 +331,7 @@ function getSubtitles() {
 }
 
 function mediaHasEnded(ended) {
-  if ((ended || player.avcomponent.getCurrentTime() == duration) && currentMediaItem < manifests.length) {
+  if ((ended || player.avcomponent._getCurrentCanvas().getCurrentTime() == duration) && currentMediaItem < manifests.length) {
     //load next playlist item
     manifest = manifests[currentMediaItem].vid;
     currentMediaItem++;
