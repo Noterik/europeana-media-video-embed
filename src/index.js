@@ -11,7 +11,7 @@ require('./icons/spotlight.svg');
 require('./icons/label.svg');
 require('./icons/pause.svg');
 
-const EuropeanaMediaPlayer = require("EuropeanaMediaPlayer");
+const EuropeanaMediaPlayer = require("@europeana/media-player");
 
 //var options = {embedid: "6FFlHN"}; 
 //var options = {embedid: "WZpDVT"};
